@@ -30,6 +30,7 @@
       <div>
         <v-slider
           :value="canvasZoom"
+          :min="1"
           :max="500"
           class="align-center"
           dark
@@ -38,6 +39,8 @@
           <template v-slot:append>
             <v-text-field
               :value="canvasZoom"
+              :min="1"
+              :max="500"
               class="mt-0 pt-0"
               type="number"
               style="width: 60px"
@@ -103,7 +106,7 @@
       <div>
         <v-slider
           :value="strokeWidth"
-          :max="500"
+          :max="50"
           class="align-center"
           dark
           @input="changeStrokeWidth"
@@ -111,6 +114,7 @@
           <template v-slot:append>
             <v-text-field
               :value="strokeWidth"
+              :max="50"
               class="mt-0 pt-0"
               type="number"
               style="width: 60px"
