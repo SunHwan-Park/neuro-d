@@ -155,6 +155,14 @@ export default {
       "moveDraw",
       "stopDraw"
     ])
+  },
+  mounted() {
+    window.addEventListener('beforeunload', (event) => {
+      if (this.svgObjs.length) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    });
   }
 }
 </script>
