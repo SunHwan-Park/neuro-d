@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <NavBar class="nav-bar" />
-    <div class="main-area">
+    <div class="main-area d-flex">
       <ToolBox class="tool-box" />
       <Canvas class="canvas" />
       <OptionBox class="option-box" />
@@ -43,22 +43,21 @@ export default {
   .main-area {
     width: 100%;
     height: 86vh;
-    display: flex;
   }
 
   .tool-box {
-    width: 6vw;
+    width: 80px;
     height: 100%;
     background-color: #1C2F50;
   }
 
   .canvas {
-    width: 84vw;
+    width: 100%;
     height: 100%;
   }
 
   .option-box {
-    width: 10vw;
+    width: 160px;
     height: 100%;
     background-color: #1C2F50;
   }
