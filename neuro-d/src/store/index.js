@@ -37,6 +37,7 @@ export default new Vuex.Store({
     strokeWidth: 5,
 
     svgObjs: [],
+    undoObjs: [],
     polygonLines: [],
     tempLine: null,
     onCurvedLine: false,
@@ -63,6 +64,13 @@ export default new Vuex.Store({
     },
     ADD_SVGOBJS(state, svgObj) {
       state.svgObjs.push(svgObj);
+      state.undoObjs = [];
+    },
+    UNDO_SVGOBJS(state) {
+      state.undoObjs.push(state.svgObjs.pop());
+    },
+    REDO_SVGOBJS(state) {
+      state.svgObjs.push(state.undoObjs.pop());
     },
     SET_TEMP_LINE(state, line) {
       state.tempLine = line;
@@ -81,8 +89,29 @@ export default new Vuex.Store({
     }
   },
   actions: {
-    selectTool({ commit }, tool) {
-      commit("SET_SELECTED_TOOL", tool);
+    selectTool({ state, commit }, tool) {
+      if (tool === "undo") {
+        if (state.svgObjs.length) {
+          commit("UNDO_SVGOBJS");
+        } else {
+          alert("Can't Undo");
+        }
+      } else if (tool === "redo") {
+        if (state.undoObjs.length) {
+          commit("REDO_SVGOBJS");
+        } else {
+          alert("Can't Redo");
+        }
+      } else {
+        if (state.onPolygon) {
+          commit("SET_ON_POLYGON", false);
+          commit("CLEAR_POLYGON_LINES");
+        } else if (state.onCurvedLine) {
+          commit("SET_TEMP_LINE", null);
+          commit("SET_ON_CURVED_LINE", false);
+        }
+        commit("SET_SELECTED_TOOL", tool);
+      }
     },
     changeCanvasColor({ state, commit }, color) {
       commit("SET_CANVAS_COLOR", color);
@@ -283,15 +312,6 @@ export default new Vuex.Store({
       }
     },
     startPolygon({ state, commit }, event) {
-      const svgObj = {
-        id: state.svgObjs.length + 1,
-        tool: "polygon",
-        points: "",
-        fillColor: state.fillColor.hexa,
-        strokeWidth: state.strokeWidth,
-        strokeColor: state.strokeColor.hexa
-      }
-      commit("ADD_SVGOBJS", svgObj);
       const polygonLine = {
         tool: 'polygonLine',
         x1: event.layerX,
@@ -307,13 +327,21 @@ export default new Vuex.Store({
       let firstLine = state.polygonLines[0];
       let lastLine = state.polygonLines[state.polygonLines.length - 1];
       if (state.onPolygon) {
-        if (Math.abs(firstLine.x1 - event.layerX) < 5 && Math.abs(firstLine.y1 - event.layerY) < 5 ) {
-          let points = `${firstLine.x1},${firstLine.y1} `;
+        if (Math.abs(firstLine.x1 - event.layerX) < 10 && Math.abs(firstLine.y1 - event.layerY) < 10 ) {
+          let points = '';
           state.polygonLines.forEach(line => {
-            points += `${line.x2},${line.y2} `;
+            points += `${line.x1},${line.y1} `;
           });
-          let lastObj = state.svgObjs[state.svgObjs.length - 1];
-          lastObj.points = points;
+          points += `${lastLine.x2},${lastLine.y2}`;
+          const svgObj = {
+            id: state.svgObjs.length + 1,
+            tool: "polygon",
+            points: points,
+            fillColor: state.fillColor.hexa,
+            strokeWidth: state.strokeWidth,
+            strokeColor: state.strokeColor.hexa
+          }
+          commit("ADD_SVGOBJS", svgObj);
           commit("SET_ON_POLYGON", false);
           commit("CLEAR_POLYGON_LINES");
           return;
@@ -351,7 +379,7 @@ export default new Vuex.Store({
         let lastObj = state.svgObjs[state.svgObjs.length - 1];
         lastObj.points += `${event.layerX},${event.layerY} `;
       }
-    },
+    }
   },
   modules: {
   }
