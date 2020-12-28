@@ -54,10 +54,11 @@ export default {
   .canvas {
     width: 100%;
     height: 100%;
+    background-color: rgb(228, 228, 228);
   }
 
   .option-box {
-    width: 160px;
+    width: 240px;
     height: 100%;
     background-color: #1C2F50;
   }
