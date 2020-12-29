@@ -46,7 +46,7 @@ export default {
 
 <style scoped>
   .tool {
-    width: 35px;
+    width: 30px;
     margin: 5px 0px;
     cursor: pointer;
   }

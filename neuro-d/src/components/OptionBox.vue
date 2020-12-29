@@ -25,7 +25,35 @@
       </div>
     </div>
 
-    <div class="canvas-zoom mb-5">
+    <div class="canvas-size">
+      <h3>Canvas Size</h3>
+      <v-text-field
+        :value="canvasWidth"
+        :min="1"
+        :max="1920"
+        dark
+        prefix="W"
+        suffix="px"
+        class="mt-0 pt-0"
+        type="number"
+        style="width: 90%"
+        @input="changeCanvasWidth"
+      ></v-text-field>
+      <v-text-field
+        :value="canvasHeight"
+        :min="1"
+        :max="1080"
+        dark
+        prefix="H"
+        suffix="px"
+        class="mt-0 pt-0"
+        type="number"
+        style="width: 90%"
+        @input="changeCanvasHeight"
+      ></v-text-field>
+    </div>
+
+    <div class="canvas-zoom">
       <h3>Canvas Zoom</h3>
       <div>
         <v-slider
@@ -139,6 +167,8 @@ export default {
     ...mapState([
       "selectedTool",
       "canvasColor",
+      "canvasWidth",
+      "canvasHeight",
       "canvasZoom",
       "fillColor",
       "strokeColor",
@@ -149,6 +179,8 @@ export default {
     ...mapActions([
       "changeCanvasColor",
       "changeCanvasZoom",
+      "changeCanvasWidth",
+      "changeCanvasHeight",
       "changeFillColor",
       "changeStrokeColor",
       "changeStrokeWidth"

@@ -3,7 +3,7 @@
     <NavBar class="nav-bar" />
     <div class="main-area d-flex">
       <ToolBox class="tool-box" />
-      <Canvas class="canvas" />
+      <Canvas class="canvas-area" />
       <OptionBox class="option-box" />
     </div>
     <Footer class="footer" />
@@ -49,17 +49,20 @@ export default {
     width: 80px;
     height: 100%;
     background-color: #1C2F50;
+    overflow: auto;
   }
 
-  .canvas {
+  .canvas-area {
     width: 100%;
     height: 100%;
     background-color: rgb(228, 228, 228);
+    overflow: auto;
   }
 
   .option-box {
     width: 240px;
     height: 100%;
     background-color: #1C2F50;
+    overflow: auto;
   }
 </style>

@@ -1,16 +1,17 @@
 <template>
-  <div class="outer-canvas d-flex justify-center align-center">
+  <div class="outer-canvas text-center">
     <svg
       class="inner-canvas"
       :style="{ 
         'background-color': canvasColor.hexa ? canvasColor.hexa : canvasColor,
-        'width': '800px',
-        'height': '500px',
+        'width': canvasWidth,
+        'height': canvasHeight,
         'cursor': 'pointer'
       }"
       @mousedown="startDraw"
       @mousemove="moveDraw"
       @mouseup="stopDraw"
+      @mouseleave="leaveCanvas"
     >
       <template v-if="tempLine">
         <line
@@ -143,6 +144,8 @@ export default {
   computed: {
     ...mapState([
       "canvasColor",
+      "canvasWidth",
+      "canvasHeight",
       "selectedTool",
       "svgObjs",
       "tempLine",
@@ -153,12 +156,14 @@ export default {
     ...mapActions([
       "startDraw",
       "moveDraw",
-      "stopDraw"
+      "stopDraw",
+      "leaveCanvas"
     ])
   },
   mounted() {
     window.addEventListener('beforeunload', (event) => {
-      if (this.svgObjs.length) {
+      const canvas = document.querySelector(".inner-canvas");
+      if (canvas.children.length) {
         event.preventDefault();
         event.returnValue = '';
       }
@@ -168,16 +173,14 @@ export default {
 </script>
 
 <style scoped>
+  .inner-canvas {
+    transform-origin: top left;
+  }
   svg *{
       transform-box: fill-box;
       transform-origin: center;
   }
-
   svg text{
     user-select: none;
-  }
-
-  .outer-canvas {
-    overflow: auto;
   }
 </style>
