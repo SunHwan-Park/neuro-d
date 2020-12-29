@@ -2,11 +2,11 @@
   <div class="outer-canvas text-center">
     <svg
       class="inner-canvas"
-      :style="{ 
+      :style="{
+        'cursor': selectedCursor,
         'background-color': canvasColor.hexa ? canvasColor.hexa : canvasColor,
         'width': canvasWidth,
-        'height': canvasHeight,
-        'cursor': 'pointer'
+        'height': canvasHeight
       }"
       @mousedown="startDraw"
       @mousemove="moveDraw"
@@ -151,7 +151,16 @@ export default {
       "svgObjs",
       "tempLine",
       "polygonLines"
-    ])
+    ]),
+    selectedCursor() {
+      if (this.selectedTool === "hand") {
+        return "all-scroll";
+      } else if(this.selectedTool === "eraser") {
+        return "grabbing";
+      } else {
+        return "crosshair";
+      }
+    }
   },
   methods: {
     ...mapActions([
