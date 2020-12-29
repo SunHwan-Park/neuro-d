@@ -60,8 +60,8 @@
           :value="canvasZoom"
           :min="1"
           :max="500"
-          class="align-center"
           dark
+          class="align-center"
           @input="changeCanvasZoom"
         >
           <template v-slot:append>
@@ -136,8 +136,8 @@
         <v-slider
           :value="strokeWidth"
           :max="50"
-          class="align-center"
           dark
+          class="align-center"
           @input="changeStrokeWidth"
         >
           <template v-slot:append>
@@ -154,17 +154,16 @@
         </v-slider>
       </div>
     </div>
+
   </div>
 </template>
 
 <script>
 import { mapActions, mapState } from 'vuex'
+
 export default {
   name: "OptionBox",
-  data() {
-    return {
-    }
-  },
+
   computed: {
     ...mapState([
       "selectedTool",
@@ -177,6 +176,7 @@ export default {
       "strokeWidth"
     ])
   },
+
   methods: {
     ...mapActions([
       "changeCanvasColor",
@@ -186,7 +186,7 @@ export default {
       "changeFillColor",
       "changeStrokeColor",
       "changeStrokeWidth"
-      ])
+    ])
   }
 }
 </script>

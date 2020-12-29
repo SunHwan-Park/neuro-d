@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <NavBar class="nav-bar" />
-    <div class="main-area d-flex">
+    <div class="main-area d-flex justify-space-between">
       <ToolBox class="tool-box scroll-sect" />
       <Canvas class="canvas-area scroll-sect" />
       <OptionBox class="option-box scroll-sect" />
@@ -26,36 +26,11 @@ export default {
     ToolBox,
     OptionBox,
     Footer
-  },
-
-  data: () => ({
-  }),
+  }
 };
 </script>
 
 <style scoped>
-  .scroll-sect::-webkit-scrollbar {
-    width: 10px; 
-    height: 10px;
-  }
-
-  .scroll-sect::-webkit-scrollbar-track {
-    background: #37474F;
-  }
-
-  .scroll-sect::-webkit-scrollbar-corner {
-    background: #37474F; 
-  }
-
-  .scroll-sect::-webkit-scrollbar-thumb {
-    background: #5d7dac;
-  }
-
-  .scroll-sect::-webkit-scrollbar-button {
-    width: 0;
-    height: 0;
-  }
-
   .nav-bar, .footer{
     width: 100%;
     height: 7vh;
@@ -86,5 +61,27 @@ export default {
     height: 100%;
     background-color: #1C2F50;
     overflow: auto;
+  }
+
+  .scroll-sect::-webkit-scrollbar {
+    width: 10px; 
+    height: 10px;
+  }
+
+  .scroll-sect::-webkit-scrollbar-track {
+    background: #37474F;
+  }
+
+  .scroll-sect::-webkit-scrollbar-corner {
+    background: #37474F; 
+  }
+
+  .scroll-sect::-webkit-scrollbar-thumb {
+    background: #5d7dac;
+  }
+
+  .scroll-sect::-webkit-scrollbar-button {
+    width: 0;
+    height: 0;
   }
 </style>

@@ -34,9 +34,11 @@ export default {
       ]
     }
   },
+
   computed: {
     ...mapState(["selectedTool"])
   },
+  
   methods: {
     ...mapActions(["selectTool"])
   }

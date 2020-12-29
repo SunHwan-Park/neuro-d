@@ -103,7 +103,6 @@
             'stroke-width': svgObj.strokeWidth
           }"
         />
-
       </template>
 
       <template v-for="line in polygonLines">
@@ -140,8 +139,10 @@
 
 <script>
 import { mapActions, mapState } from 'vuex'
+
 export default {
   name: "Canvas",
+
   computed: {
     ...mapState([
       "canvasColor",
@@ -162,6 +163,7 @@ export default {
       }
     }
   },
+
   methods: {
     ...mapActions([
       "startDraw",
@@ -170,6 +172,7 @@ export default {
       "leaveCanvas"
     ])
   },
+  
   mounted() {
     window.addEventListener('beforeunload', (event) => {
       const canvas = document.querySelector(".inner-canvas");
@@ -186,11 +189,9 @@ export default {
   .inner-canvas {
     transform-origin: top left;
   }
+
   svg *{
-      transform-box: fill-box;
-      transform-origin: center;
-  }
-  svg text{
-    user-select: none;
+    transform-box: fill-box;
+    transform-origin: center;
   }
 </style>
