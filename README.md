@@ -4,8 +4,7 @@
 
 ## [🌈DEMO](https://neuro-d.netlify.app/)
 
-![neuro-d](images\neuro-d.jpg)
-
+<img src="images/neuro-d.jpg">
 
 
 ## Getting Started
