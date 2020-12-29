@@ -13,35 +13,6 @@
       @mouseup="stopDraw"
       @mouseleave="leaveCanvas"
     >
-      <template v-if="tempLine">
-        <line
-          :x1="tempLine.x1"
-          :y1="tempLine.y1"
-          :x2="tempLine.x2"
-          :y2="tempLine.y2"
-          :style="{
-            'stroke': tempLine.strokeColor,
-            'stroke-width': tempLine.strokeWidth,
-            'stroke-dasharray': tempLine.strokeDashArray
-          }"
-        />
-      </template>
-
-      <template v-for="line in polygonLines">
-        <line
-          v-if="line.tool === 'polygonLine'"
-          :key="line.id"
-          :x1="line.x1"
-          :y1="line.y1"
-          :x2="line.x2"
-          :y2="line.y2"
-          :style="{
-            'stroke': line.strokeColor,
-            'stroke-width': line.strokeWidth,
-          }"
-        />
-      </template>
-
       <template v-for="svgObj in svgObjs">
         <polyline
           v-if="svgObj.tool === 'pencil'"
@@ -80,12 +51,13 @@
           }"
         />
 
-        <circle
-          v-if="svgObj.tool === 'circle'"
+        <ellipse
+          v-if="svgObj.tool === 'ellipse'"
           :key="svgObj.id"
           :cx="svgObj.x"
           :cy="svgObj.y"
-          :r="svgObj.radius"
+          :rx="svgObj.rx"
+          :ry="svgObj.ry"
           :style="{
             'fill': svgObj.fillColor,
             'stroke': svgObj.strokeColor,
@@ -132,6 +104,35 @@
           }"
         />
 
+      </template>
+
+      <template v-for="line in polygonLines">
+        <line
+          v-if="line.tool === 'polygonLine'"
+          :key="line.id"
+          :x1="line.x1"
+          :y1="line.y1"
+          :x2="line.x2"
+          :y2="line.y2"
+          :style="{
+            'stroke': line.strokeColor,
+            'stroke-width': line.strokeWidth,
+          }"
+        />
+      </template>
+
+      <template v-if="tempLine">
+        <line
+          :x1="tempLine.x1"
+          :y1="tempLine.y1"
+          :x2="tempLine.x2"
+          :y2="tempLine.y2"
+          :style="{
+            'stroke': tempLine.strokeColor,
+            'stroke-width': tempLine.strokeWidth,
+            'stroke-dasharray': tempLine.strokeDashArray
+          }"
+        />
       </template>
     </svg>
   </div>

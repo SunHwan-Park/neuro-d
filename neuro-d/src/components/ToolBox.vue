@@ -22,11 +22,10 @@ export default {
     return {
       tools: [
         "hand",
-        "cursor",
         "pencil",
         "line",
         "curved_line",
-        "circle",
+        "ellipse",
         "rectangle",
         "polygon",
         "eraser",

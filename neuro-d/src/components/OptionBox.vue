@@ -69,6 +69,7 @@
               :value="canvasZoom"
               :min="1"
               :max="500"
+              suffix="%"
               class="mt-0 pt-0"
               type="number"
               style="width: 60px"
@@ -143,6 +144,7 @@
             <v-text-field
               :value="strokeWidth"
               :max="50"
+              suffix="px"
               class="mt-0 pt-0"
               type="number"
               style="width: 60px"

@@ -166,8 +166,8 @@ export default new Vuex.Store({
         dispatch("startLine", event);
       } else if (tool === "curved_line" && !state.onCurvedLine) {
         dispatch("startCurvedLine", event);
-      } else if (tool === "circle") {
-        dispatch("startCircle", event);
+      } else if (tool === "ellipse") {
+        dispatch("startEllipse", event);
       } else if (tool === "rectangle") {
         dispatch("startRectangle", event);
       } else if (tool === "polygon") {
@@ -192,8 +192,8 @@ export default new Vuex.Store({
         } else {
           dispatch("drawTempLine", event);
         }
-      } else if (tool === "circle") {
-        dispatch("drawCircle", event);
+      } else if (tool === "ellipse") {
+        dispatch("drawEllipse", event);
       } else if (tool === "rectangle") {
         dispatch("drawRectangle", event);
       } else if (tool === "polygon") {
@@ -316,25 +316,31 @@ export default new Vuex.Store({
         lastObj.d = `M ${state.tempLine.x1} ${state.tempLine.y1} Q ${event.layerX * getters.zoomRatio} ${event.layerY * getters.zoomRatio} ${state.tempLine.x2} ${state.tempLine.y2}`
       }
     },
-    startCircle({ state, getters, commit }, event) {
+    startEllipse({ state, getters, commit }, event) {
       const svgObj = {
-        id: `circle_${state.svgObjs.length + 1}`,
-        tool: "circle",
+        id: `ellipse${state.svgObjs.length + 1}`,
+        tool: "ellipse",
         x: event.layerX * getters.zoomRatio,
         y: event.layerY * getters.zoomRatio,
-        radius: 0,
+        rx: 0,
+        ry: 0,
         strokeColor: state.strokeColor.hexa,
         strokeWidth: state.strokeWidth,
         fillColor: state.fillColor.hexa
       }
       commit("ADD_SVGOBJS", svgObj);
     },
-    drawCircle({ state, getters }, event) {
+    drawEllipse({ state, getters }, event) {
       if (event.buttons == 1) {
         let lastObj = state.svgObjs[state.svgObjs.length - 1];
-        let w = Math.abs(lastObj.x - event.layerX * getters.zoomRatio);
-        let h = Math.abs(lastObj.y - event.layerY * getters.zoomRatio);
-        lastObj.radius = Math.sqrt((w**2) + (h**2));
+        if (event.shiftKey) {
+          let r = Math.max(Math.abs(lastObj.x - event.layerX * getters.zoomRatio), Math.abs(lastObj.y - event.layerY * getters.zoomRatio));
+          lastObj.rx = r;
+          lastObj.ry = r;
+        } else {
+          lastObj.rx = Math.abs(lastObj.x - event.layerX * getters.zoomRatio);
+          lastObj.ry = Math.abs(lastObj.y - event.layerY * getters.zoomRatio);
+        }
       }
     },
     startRectangle({ state, getters, commit }, event) {
@@ -357,8 +363,14 @@ export default new Vuex.Store({
       if (event.buttons == 1) {
         let lastObj = state.svgObjs[state.svgObjs.length - 1];
         if (event.layerX * getters.zoomRatio - lastObj.x > 0 && event.layerY * getters.zoomRatio - lastObj.y > 0) {
-          lastObj.width = event.layerX * getters.zoomRatio - lastObj.x;
-          lastObj.height = event.layerY * getters.zoomRatio - lastObj.y;
+          if (event.shiftKey) {
+            let len = Math.max(event.layerX * getters.zoomRatio - lastObj.x, event.layerY * getters.zoomRatio - lastObj.y);
+            lastObj.width = len;
+            lastObj.height = len;
+          } else {
+            lastObj.width = event.layerX * getters.zoomRatio - lastObj.x;
+            lastObj.height = event.layerY * getters.zoomRatio - lastObj.y;
+          }
         }
       }
     },
