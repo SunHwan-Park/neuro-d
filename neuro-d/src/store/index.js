@@ -16,6 +16,8 @@ export default new Vuex.Store({
       "rgba": { "r": 255, "g": 255, "b": 255, "a": 1 }
     },
     canvasZoom: 100,
+    canvasWidth: 800,
+    canvasHeight: 600,
     fillColor: {
       "alpha": 1,
       "hex": "#000000",
@@ -42,6 +44,12 @@ export default new Vuex.Store({
     tempLine: null,
     onCurvedLine: false,
     onPolygon: false,
+    onHand: false
+  },
+  getters: {
+    zoomRatio(state) {
+      return 100/state.canvasZoom;
+    }
   },
   mutations: {
     SET_SELECTED_TOOL(state, tool) {
@@ -49,6 +57,12 @@ export default new Vuex.Store({
     },
     SET_CANVAS_COLOR(state, color) {
       state.canvasColor = color;
+    },
+    SET_CANVAS_WIDTH(state, width) {
+      state.canvasWidth = width;
+    },
+    SET_CANVAS_HEIGHT(state, height) {
+      state.canvasHeight = height;
     },
     SET_CANVAS_ZOOM(state, zoom) {
       state.canvasZoom = zoom;
@@ -64,6 +78,10 @@ export default new Vuex.Store({
     },
     ADD_SVGOBJS(state, svgObj) {
       state.svgObjs.push(svgObj);
+      state.undoObjs = [];
+    },
+    CLEAR_SVGOBJS(state) {
+      state.svgObjs = [];
       state.undoObjs = [];
     },
     UNDO_SVGOBJS(state) {
@@ -86,6 +104,9 @@ export default new Vuex.Store({
     },
     CLEAR_POLYGON_LINES(state) {
       state.polygonLines = [];
+    },
+    SET_ON_HAND(state, value) {
+      state.onHand = value;
     }
   },
   actions: {
@@ -103,13 +124,6 @@ export default new Vuex.Store({
           alert("Can't Redo");
         }
       } else {
-        if (state.onPolygon) {
-          commit("SET_ON_POLYGON", false);
-          commit("CLEAR_POLYGON_LINES");
-        } else if (state.onCurvedLine) {
-          commit("SET_TEMP_LINE", null);
-          commit("SET_ON_CURVED_LINE", false);
-        }
         commit("SET_SELECTED_TOOL", tool);
       }
     },
@@ -121,7 +135,15 @@ export default new Vuex.Store({
         }
       });
     },
+    changeCanvasWidth({ commit }, width) {
+      commit("SET_CANVAS_WIDTH", width);
+    },
+    changeCanvasHeight({ commit }, height) {
+      commit("SET_CANVAS_HEIGHT", height);
+    },
     changeCanvasZoom({ commit }, zoom) {
+      const canvas = document.querySelector('.inner-canvas');
+      canvas.setAttribute("transform", `scale(${zoom/100})`);
       commit("SET_CANVAS_ZOOM", zoom);
     },
     changeFillColor({ commit }, color) {
@@ -136,7 +158,9 @@ export default new Vuex.Store({
 
     startDraw({ state, dispatch }, event) {
       const tool = state.selectedTool;
-      if (tool === "pencil") {
+      if (tool === "hand") {
+        dispatch("startHand", event);
+      } else if (tool === "pencil") {
         dispatch("startPencil", event);
       } else if (tool === "line") {
         dispatch("startLine", event);
@@ -156,7 +180,9 @@ export default new Vuex.Store({
     },
     moveDraw({ state, dispatch }, event) {
       const tool = state.selectedTool;
-      if (tool === "pencil") {
+      if (tool === "hand") {
+        dispatch("drawHand", event);
+      } else if (tool === "pencil") {
         dispatch("drawPencil", event);
       } else if (tool === "line") {
         dispatch("drawLine", event);
@@ -180,7 +206,9 @@ export default new Vuex.Store({
     },
     stopDraw({ state, commit, dispatch }, event) {
       const tool = state.selectedTool;
-      if (tool === "curved_line") {
+      if (tool === "hand") {
+        commit("SET_ON_HAND", false);
+      } else if (tool === "curved_line") {
         if (state.onCurvedLine) {
           commit("SET_TEMP_LINE", null);
         }
@@ -193,46 +221,69 @@ export default new Vuex.Store({
         }
       }
     },
-    startPencil({ state, commit }, event) {
+    leaveCanvas({ state, commit }) {
+      const tool = state.selectedTool;
+      if (tool === "hand" && state.onHand) {
+        commit("SET_ON_HAND", false);
+      } else if (tool === "polygon" && state.onPolygon) {
+        commit("SET_ON_POLYGON", false);
+        commit("CLEAR_POLYGON_LINES");
+      } else if (tool === "curved_line" && state.onCurvedLine) {
+        commit("SET_TEMP_LINE", null);
+        commit("SET_ON_CURVED_LINE", false);
+      }
+    },
+    startHand({ commit }) {
+      commit("SET_ON_HAND", true);
+    },
+    drawHand({ state }, event) {
+      if (state.onHand) {
+        const outerCanvas = document.querySelector(".outer-canvas");
+        let x = outerCanvas.scrollLeft - event.movementX;
+        let y = outerCanvas.scrollTop - event.movementY;
+        outerCanvas.scrollTo(x, y);
+      }
+    },
+    startPencil({ state, getters, commit }, event) {
       const svgObj = {
-        id: state.svgObjs.length + 1,
+        id: `pencil_${state.svgObjs.length + 1}`,
         tool: "pencil",
-        points: `${event.layerX},${event.layerY} `,
+        points: `${event.layerX * getters.zoomRatio},${event.layerY * getters.zoomRatio} `,
         strokeColor: state.strokeColor.hexa,
         strokeWidth: state.strokeWidth != 0 ? state.strokeWidth : 1
       }
       commit("ADD_SVGOBJS", svgObj);
     },
-    drawPencil({ state }, event) {
+    drawPencil({ state, getters }, event) {
       if (event.buttons == 1) {
         let lastObj = state.svgObjs[state.svgObjs.length - 1];
-        lastObj.points += `${event.layerX},${event.layerY} `;
+        lastObj.points += `${event.layerX * getters.zoomRatio},${event.layerY * getters.zoomRatio} `;
       }
     },
-    startLine({ state, commit }, event) {
+    startLine({ state, getters, commit }, event) {
       const svgObj = {
-        id: state.svgObjs.length + 1,
+        id: `line_${state.svgObjs.length + 1}`,
         tool: "line",
-        x1: event.layerX,
-        y1: event.layerY,
-        x2: event.layerX,
-        y2: event.layerY,
+        x1: event.layerX * getters.zoomRatio,
+        y1: event.layerY * getters.zoomRatio,
+        x2: event.layerX * getters.zoomRatio,
+        y2: event.layerY * getters.zoomRatio,
         strokeColor: state.strokeColor.hexa,
         strokeWidth: state.strokeWidth != 0 ? state.strokeWidth : 1,
         rotate: 0
       }
       commit("ADD_SVGOBJS", svgObj);
     },
-    drawLine({ state }, event) {
+    drawLine({ state, getters }, event) {
       if (event.buttons == 1) {
         let lastObj = state.svgObjs[state.svgObjs.length - 1];
-        lastObj.x2 = event.layerX;
-        lastObj.y2 = event.layerY;
+        lastObj.x2 = event.layerX * getters.zoomRatio;
+        lastObj.y2 = event.layerY * getters.zoomRatio;
       }
     },
-    startCurvedLine({ state, commit }, event) {
+    startCurvedLine({ state, getters, commit }, event) {
       const svgObj = {
-        id: state.svgObjs.length + 1,
+        id: `cline_${state.svgObjs.length + 1}`,
         tool: "curved_line",
         d: '',
         strokeColor: state.strokeColor.hexa,
@@ -242,35 +293,35 @@ export default new Vuex.Store({
       commit("ADD_SVGOBJS", svgObj);
       const tempLine = {
         tool: "line",
-        x1: event.layerX,
-        y1: event.layerY,
-        x2: event.layerX,
-        y2: event.layerY,
+        x1: event.layerX * getters.zoomRatio,
+        y1: event.layerY * getters.zoomRatio,
+        x2: event.layerX * getters.zoomRatio,
+        y2: event.layerY * getters.zoomRatio,
         strokeColor: '#325D9E',
         strokeWidth: 5,
         strokeDashArray: 5
       }
       commit("SET_TEMP_LINE", tempLine);
     },
-    drawTempLine({ state }, event) {
+    drawTempLine({ state, getters }, event) {
       if (event.buttons == 1) {
         let tempLine = state.tempLine;
-        tempLine.x2 = event.layerX;
-        tempLine.y2 = event.layerY;
+        tempLine.x2 = event.layerX * getters.zoomRatio;
+        tempLine.y2 = event.layerY * getters.zoomRatio;
       }
     },
-    drawCurvedLine({ state }, event) {
+    drawCurvedLine({ state, getters }, event) {
       if (event.buttons == 0) {
         let lastObj = state.svgObjs[state.svgObjs.length - 1]; 
-        lastObj.d = `M ${state.tempLine.x1} ${state.tempLine.y1} Q ${event.layerX} ${event.layerY} ${state.tempLine.x2} ${state.tempLine.y2}`
+        lastObj.d = `M ${state.tempLine.x1} ${state.tempLine.y1} Q ${event.layerX * getters.zoomRatio} ${event.layerY * getters.zoomRatio} ${state.tempLine.x2} ${state.tempLine.y2}`
       }
     },
-    startCircle({ state, commit }, event) {
+    startCircle({ state, getters, commit }, event) {
       const svgObj = {
-        id: state.svgObjs.length + 1,
+        id: `circle_${state.svgObjs.length + 1}`,
         tool: "circle",
-        x: event.layerX,
-        y: event.layerY,
+        x: event.layerX * getters.zoomRatio,
+        y: event.layerY * getters.zoomRatio,
         radius: 0,
         strokeColor: state.strokeColor.hexa,
         strokeWidth: state.strokeWidth,
@@ -278,20 +329,20 @@ export default new Vuex.Store({
       }
       commit("ADD_SVGOBJS", svgObj);
     },
-    drawCircle({ state }, event) {
+    drawCircle({ state, getters }, event) {
       if (event.buttons == 1) {
         let lastObj = state.svgObjs[state.svgObjs.length - 1];
-        let w = Math.abs(lastObj.x - event.layerX);
-        let h = Math.abs(lastObj.y - event.layerY);
+        let w = Math.abs(lastObj.x - event.layerX * getters.zoomRatio);
+        let h = Math.abs(lastObj.y - event.layerY * getters.zoomRatio);
         lastObj.radius = Math.sqrt((w**2) + (h**2));
       }
     },
-    startRectangle({ state, commit }, event) {
+    startRectangle({ state, getters, commit }, event) {
       const svgObj = {
-        id: state.svgObjs.length + 1,
+        id: `rect_${state.svgObjs.length + 1}`,
         tool: 'rectangle',
-        x: event.layerX,
-        y: event.layerY,
+        x: event.layerX * getters.zoomRatio,
+        y: event.layerY * getters.zoomRatio,
         width: 0,
         height: 0,
         radius: 0,
@@ -302,39 +353,39 @@ export default new Vuex.Store({
       }
       commit("ADD_SVGOBJS", svgObj);
     },
-    drawRectangle({ state }, event) {
+    drawRectangle({ state, getters }, event) {
       if (event.buttons == 1) {
         let lastObj = state.svgObjs[state.svgObjs.length - 1];
-        if (event.layerX - lastObj.x > 0 && event.layerY - lastObj.y > 0) {
-          lastObj.width = event.layerX - lastObj.x;
-          lastObj.height = event.layerY - lastObj.y;
+        if (event.layerX * getters.zoomRatio - lastObj.x > 0 && event.layerY * getters.zoomRatio - lastObj.y > 0) {
+          lastObj.width = event.layerX * getters.zoomRatio - lastObj.x;
+          lastObj.height = event.layerY * getters.zoomRatio - lastObj.y;
         }
       }
     },
-    startPolygon({ state, commit }, event) {
+    startPolygon({ state, getters, commit }, event) {
       const polygonLine = {
         tool: 'polygonLine',
-        x1: event.layerX,
-        y1: event.layerY,
-        x2: event.layerX,
-        y2: event.layerY,
+        x1: event.layerX * getters.zoomRatio,
+        y1: event.layerY * getters.zoomRatio,
+        x2: event.layerX * getters.zoomRatio,
+        y2: event.layerY * getters.zoomRatio,
         strokeColor: state.strokeColor.hexa,
         strokeWidth: state.strokeWidth
       }
       commit("ADD_POLYGON_LINES", polygonLine);
     },
-    drawPolygonLine({ state, commit }, event) {
+    drawPolygonLine({ state, getters, commit }, event) {
       let firstLine = state.polygonLines[0];
       let lastLine = state.polygonLines[state.polygonLines.length - 1];
       if (state.onPolygon) {
-        if (Math.abs(firstLine.x1 - event.layerX) < 10 && Math.abs(firstLine.y1 - event.layerY) < 10 ) {
+        if (Math.abs(firstLine.x1 - event.layerX * getters.zoomRatio) < 10 && Math.abs(firstLine.y1 - event.layerY * getters.zoomRatio) < 10 ) {
           let points = '';
           state.polygonLines.forEach(line => {
             points += `${line.x1},${line.y1} `;
           });
           points += `${lastLine.x2},${lastLine.y2}`;
           const svgObj = {
-            id: state.svgObjs.length + 1,
+            id: `polygon_${state.svgObjs.length + 1}`,
             tool: "polygon",
             points: points,
             fillColor: state.fillColor.hexa,
@@ -347,38 +398,42 @@ export default new Vuex.Store({
           return;
         }
         const polygonLine = {
-          id: state.polygonLines.length + 1,
+          id: `pline_${state.polygonLines.length + 1}`,
           tool: "polygonLine",
           x1: lastLine.x2,
           y1: lastLine.y2,
-          x2: event.layerX,
-          y2: event.layerY,
+          x2: event.layerX * getters.zoomRatio,
+          y2: event.layerY * getters.zoomRatio,
           strokeColor: state.strokeColor.hexa,
           strokeWidth: state.strokeWidth
         }
         commit("ADD_POLYGON_LINES", polygonLine);
       } else {
         if (event.buttons === 1) {
-          lastLine.x2 = event.layerX;
-          lastLine.y2 = event.layerY;
+          lastLine.x2 = event.layerX * getters.zoomRatio;
+          lastLine.y2 = event.layerY * getters.zoomRatio;
         }
       }   
     },
-    startEraser({ state, commit }, event) {
+    startEraser({ state, getters, commit }, event) {
       const svgObj = {
-        id: state.svgObjs.length + 1,
+        id: `eraser_${state.svgObjs.length + 1}`,
         tool: "eraser",
-        points: `${event.layerX},${event.layerY} `,
-        strokeColor: state.canvasColor.hexa,
+        points: `${event.layerX * getters.zoomRatio},${event.layerY * getters.zoomRatio} `,
+        strokeColor: state.canvasColor.hexa ? state.canvasColor.hexa : state.canvasColor,
         strokeWidth: state.strokeWidth != 0 ? state.strokeWidth : 1
       }
       commit("ADD_SVGOBJS", svgObj);
     },
-    drawEraser({ state }, event) {
+    drawEraser({ state, getters }, event) {
       if (event.buttons == 1) {
         let lastObj = state.svgObjs[state.svgObjs.length - 1];
-        lastObj.points += `${event.layerX},${event.layerY} `;
+        lastObj.points += `${event.layerX * getters.zoomRatio},${event.layerY * getters.zoomRatio} `;
       }
+    },
+
+    clearSvgObjs({ commit }) {
+      commit("CLEAR_SVGOBJS");
     }
   },
   modules: {

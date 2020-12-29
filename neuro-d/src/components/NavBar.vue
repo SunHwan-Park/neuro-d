@@ -4,18 +4,18 @@
       <img class="logo" src="../assets/logo.png" />
     </a>
     <div>
-      <v-btn @click="clickImportSVG">
+      <v-btn class="button" @click="clickImportSVG">
         IMPORT
-        <input
-          v-show="false"
-          ref="inputUpload"
-          type="file"
-          accept=".svg"
-          @change="importSVG"
-        >
       </v-btn>
+      <input
+        v-show="false"
+        ref="inputUpload"
+        type="file"
+        accept=".svg"
+        @change="importSVG"
+      >
       <v-btn
-        class="ml-2"
+        class="button ml-2"
         elevation="2"
         @click="exportSVG"
       >
@@ -38,9 +38,10 @@ export default {
     ...mapState(["svgObjs"])
   },
   methods: {
-    ...mapActions(["importSVG", "changeCanvasColor"]),
+    ...mapActions(["importSVG", "changeCanvasColor", "changeCanvasWidth", "changeCanvasHeight", "clearSvgObjs"]),
     clickImportSVG() {
-      if (this.svgObjs.length) {
+      const canvas = document.querySelector(".inner-canvas");
+      if (canvas.children.length) {
         if (!confirm("Do you want to clear the Drawings?")) {
           return;
         }
@@ -64,6 +65,10 @@ export default {
       reader.readAsText(newFile);
       setTimeout(() => {
         let canvas = document.querySelector(".inner-canvas");
+        while (canvas.firstChild) {
+          canvas.removeChild(canvas.lastChild);
+        }
+        this.clearSvgObjs();
         const parser = new DOMParser();
         const doc = parser.parseFromString(result, "image/svg+xml");
         const svgElement = doc.children[0];
@@ -71,15 +76,14 @@ export default {
           canvas.appendChild(svgElement.children[0]);
         }
         if (svgElement.style.width) {
-          canvas.style.width = svgElement.style.width;
-          canvas.style.height = svgElement.style.height;
+          this.changeCanvasWidth(Number(svgElement.style.width.slice(0, -2)));
+          this.changeCanvasHeight(Number(svgElement.style.height.slice(0, -2)));
         } else {
-          canvas.style.width = svgElement.width.animVal.value;
-          canvas.style.height = svgElement.height.animVal.value;
+          this.changeCanvasWidth(svgElement.width.animVal.value);
+          this.changeCanvasHeight(svgElement.height.animVal.value);
         }
         if (svgElement.style.backgroundColor) {
           const color = svgElement.style.backgroundColor.replace('(', '').replace(')','').split(',');
-          console.log(color)
           let rgba = {
             g: Number(color[1]),
             b: Number(color[2])
@@ -95,7 +99,6 @@ export default {
           if (rgba.a) {
             hexa += this.componentToHex(Math.round(rgba.a * 255));
           }
-          console.log(hexa);
           this.changeCanvasColor(hexa);
         }
       }, 500);
@@ -116,6 +119,10 @@ export default {
 
 <style scoped>
   .logo {
-    height: 40px;
+    height: 5vh;
+  }
+
+  .button {
+    height: 5vh;
   }
 </style>
