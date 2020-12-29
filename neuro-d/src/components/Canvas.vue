@@ -3,7 +3,7 @@
     <svg
       class="inner-canvas"
       :style="{ 
-        'background-color': canvasColor.hexa,
+        'background-color': canvasColor.hexa ? canvasColor.hexa : canvasColor,
         'width': '800px',
         'height': '500px',
         'cursor': 'pointer'
