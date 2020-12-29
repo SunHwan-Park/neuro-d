@@ -1,5 +1,5 @@
 <template>
-  <div class="outer-canvas text-center">
+  <div class="outer-canvas">
     <svg
       class="inner-canvas"
       :style="{
@@ -14,6 +14,8 @@
       @mouseleave="leaveCanvas"
     >
       <template v-for="svgObj in svgObjs">
+        <temp v-if="svgObj.tool === 'temp'" :key="svgObj.id"/>
+        
         <polyline
           v-if="svgObj.tool === 'pencil'"
           :key="svgObj.id"
@@ -107,6 +109,7 @@
       </template>
 
       <template v-for="line in polygonLines">
+        <temp v-if="line.tool === 'temp'" :key="line.id"/>
         <line
           v-if="line.tool === 'polygonLine'"
           :key="line.id"
@@ -140,8 +143,10 @@
 
 <script>
 import { mapActions, mapState } from 'vuex'
+
 export default {
   name: "Canvas",
+
   computed: {
     ...mapState([
       "canvasColor",
@@ -162,6 +167,7 @@ export default {
       }
     }
   },
+
   methods: {
     ...mapActions([
       "startDraw",
@@ -170,6 +176,7 @@ export default {
       "leaveCanvas"
     ])
   },
+  
   mounted() {
     window.addEventListener('beforeunload', (event) => {
       const canvas = document.querySelector(".inner-canvas");
@@ -183,14 +190,16 @@ export default {
 </script>
 
 <style scoped>
+  .outer-canvas {
+    text-align: center;
+  }
+
   .inner-canvas {
     transform-origin: top left;
   }
+
   svg *{
-      transform-box: fill-box;
-      transform-origin: center;
-  }
-  svg text{
-    user-select: none;
+    transform-box: fill-box;
+    transform-origin: center;
   }
 </style>
